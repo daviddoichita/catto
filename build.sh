@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc -o catto catto.c -lcurl
+cc -o catto catto.c -lcurl
