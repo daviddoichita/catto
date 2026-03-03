@@ -117,8 +117,17 @@ int main(int argc, char *argv[]) {
       if (fp) {
         fwrite(chunk.memory, 1, chunk.size, fp);
         fclose(fp);
-        snprintf(cmd, sizeof(cmd), "chafa --size=120x60 cat.jpg");
-        system(cmd);
+        snprintf(cmd, sizeof(cmd), "chafa --size=120x60 cat.jpg 2>/dev/null");
+        int res = system(cmd);
+        if (res != 0) {
+          printf("Error fetching cat, tag `%s` might not exist or server could "
+                 "not be reached\n",
+                 args.tag);
+          system("rm cat.jpg");
+          free(chunk.memory);
+          curl_global_cleanup();
+          exit(1);
+        }
       } else {
       }
     }
