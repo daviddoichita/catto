@@ -12,6 +12,12 @@ struct MemoryStruct {
 	size_t size;
 };
 
+int usage(char *argv[]) {
+  printf("Usage:\n");
+  printf("  %s <tag>\n", argv[0]);
+  return 1;
+}
+
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
 	size_t realsize = size * nmemb;
 	struct MemoryStruct *mem = (struct MemoryStruct *)userp;
@@ -34,9 +40,7 @@ int main(int argc, char *argv[]) {
 	char cmd[512];
 
   if (argc < 2) {
-    printf("Usage:\n");
-    printf("  %s <url>\n", argv[0]);
-    exit(1);
+    exit(usage(argv));
   }
 
   char url[512];
