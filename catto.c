@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #define CATAAS_URL "https://cataas.com"
+#define ESCAPE(curl, input) curl_easy_escape(curl, input, strlen(input))
 
 const char *argp_program_version = "catto 0.1";
 const char *argp_program_bug_address = "<daviddoichita@proton.me>";
@@ -85,7 +86,9 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
 }
 
 int main(int argc, char *argv[]) {
-  CURL *curl;
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  CURL *curl = curl_easy_init();
+
   CURLcode res;
   struct MemoryStruct chunk;
   FILE *fp;
@@ -96,32 +99,21 @@ int main(int argc, char *argv[]) {
 
   char url[512];
   if (args.tag && args.text) {
-    if (strchr(args.text, ' ')) {
-      printf("Image text can't have spaces, replace with '%%20'\n");
-      exit(1);
-    }
     snprintf(url, sizeof(url),
              CATAAS_URL "/cat/%s/says/%s?width=400&height=300", args.tag,
-             args.text);
+             ESCAPE(curl, args.text));
   } else if (args.tag) {
     snprintf(url, sizeof(url), CATAAS_URL "/cat/%s?width=400&height=300",
              args.tag);
   } else if (args.text) {
-    if (strchr(args.text, ' ')) {
-      printf("Image text can't have spaces, replace with '%%20'\n");
-      exit(1);
-    }
     snprintf(url, sizeof(url), CATAAS_URL "/cat/says/%s?width=400&height=300",
-             args.text);
+             ESCAPE(curl, args.text));
   } else {
     snprintf(url, sizeof(url), CATAAS_URL "/cat?width=400&height=300");
   }
 
   chunk.memory = malloc(1);
   chunk.size = 0;
-
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  curl = curl_easy_init();
 
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL, url);
