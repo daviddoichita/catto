@@ -100,16 +100,16 @@ int main(int argc, char *argv[]) {
   char url[512];
   if (args.tag && args.text) {
     snprintf(url, sizeof(url),
-             CATAAS_URL "/cat/%s/says/%s?width=400&height=300", args.tag,
+             CATAAS_URL "/cat/%s/says/%s", args.tag,
              ESCAPE(curl, args.text));
   } else if (args.tag) {
-    snprintf(url, sizeof(url), CATAAS_URL "/cat/%s?width=400&height=300",
+    snprintf(url, sizeof(url), CATAAS_URL "/cat/%s",
              args.tag);
   } else if (args.text) {
-    snprintf(url, sizeof(url), CATAAS_URL "/cat/says/%s?width=400&height=300",
+    snprintf(url, sizeof(url), CATAAS_URL "/cat/says/%s",
              ESCAPE(curl, args.text));
   } else {
-    snprintf(url, sizeof(url), CATAAS_URL "/cat?width=400&height=300");
+    snprintf(url, sizeof(url), CATAAS_URL "/cat");
   }
 
   chunk.memory = malloc(1);
