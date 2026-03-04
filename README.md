@@ -5,6 +5,7 @@ Get a cat from https://cataas.com and show the cat in the terminal using chafa
 
 - libcurl-devel
 - chafa
+- argp-standalone (macos only)
 
 ## instructions
 
