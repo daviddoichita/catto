@@ -9,17 +9,22 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define CATAAS_URL "https://cataas.com"
+#define ESCAPE(curl, input) curl_easy_escape(curl, input, strlen(input))
+
 const char *argp_program_version = "catto 0.1";
 const char *argp_program_bug_address = "<daviddoichita@proton.me>";
 
 struct arguments {
   int help;
   char *tag;
+  char *text;
 } arguments;
 
 static struct argp_option options[] = {
     {"help", 'h', 0, 0, "Display this help and exit", 0},
     {"tag", 't', "TAG", 0, "The tag to fetch", 0},
+    {"text", 'T', "TEXT", 0, "The text the cat image will have", 0},
     {0}};
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -33,6 +38,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
   case 't':
     arguments->tag = arg;
+    return 0;
+
+  case 'T':
+    arguments->text = arg;
     return 0;
 
   case ARGP_KEY_ARG:
@@ -52,7 +61,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 }
 
 static char args_doc[] = "";
-static char doc[] = "catto -- fetch cat from cataas.com";
+static char doc[] = "catto -- fetch cat from " CATAAS_URL;
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
@@ -77,7 +86,9 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
 }
 
 int main(int argc, char *argv[]) {
-  CURL *curl;
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  CURL *curl = curl_easy_init();
+
   CURLcode res;
   struct MemoryStruct chunk;
   FILE *fp;
@@ -87,19 +98,22 @@ int main(int argc, char *argv[]) {
   argp_parse(&argp, argc, argv, 0, 0, &args);
 
   char url[512];
-  if (args.tag) {
-    snprintf(url, sizeof(url), "https://cataas.com/cat/%s?width=400&height=300",
+  if (args.tag && args.text) {
+    snprintf(url, sizeof(url),
+             CATAAS_URL "/cat/%s/says/%s?width=400&height=300", args.tag,
+             ESCAPE(curl, args.text));
+  } else if (args.tag) {
+    snprintf(url, sizeof(url), CATAAS_URL "/cat/%s?width=400&height=300",
              args.tag);
+  } else if (args.text) {
+    snprintf(url, sizeof(url), CATAAS_URL "/cat/says/%s?width=400&height=300",
+             ESCAPE(curl, args.text));
   } else {
-    snprintf(url, sizeof(url), "https://cataas.com/cat?width=400&height=300");
+    snprintf(url, sizeof(url), CATAAS_URL "/cat?width=400&height=300");
   }
-  url[strlen(url) + 1] = '\0';
 
   chunk.memory = malloc(1);
   chunk.size = 0;
-
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  curl = curl_easy_init();
 
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL, url);
